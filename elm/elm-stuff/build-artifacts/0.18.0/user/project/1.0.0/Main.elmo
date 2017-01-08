@@ -1,0 +1,151 @@
+var _user$project$Main$updateWord = F3(
+	function (func, id, words) {
+		var f = function (w) {
+			return _elm_lang$core$Native_Utils.eq(id, w.id) ? func(w) : w;
+		};
+		return A2(_elm_lang$core$List$map, f, words);
+	});
+var _user$project$Main$updateSoundUrl = F3(
+	function (id, soundUrl, words) {
+		return A3(
+			_user$project$Main$updateWord,
+			function (word) {
+				return _elm_lang$core$Native_Utils.update(
+					word,
+					{soundUrl: soundUrl});
+			},
+			id,
+			words);
+	});
+var _user$project$Main$updateText = F3(
+	function (id, text, words) {
+		return A3(
+			_user$project$Main$updateWord,
+			function (word) {
+				return _elm_lang$core$Native_Utils.update(
+					word,
+					{text: text});
+			},
+			id,
+			words);
+	});
+var _user$project$Main$update = F2(
+	function (msg, model) {
+		var _p0 = msg;
+		if (_p0.ctor === 'WordText') {
+			return _elm_lang$core$Native_Utils.update(
+				model,
+				{
+					words: A3(_user$project$Main$updateText, _p0._0, _p0._1, model.words)
+				});
+		} else {
+			return _elm_lang$core$Native_Utils.update(
+				model,
+				{
+					words: A3(_user$project$Main$updateSoundUrl, _p0._0, _p0._1, model.words)
+				});
+		}
+	});
+var _user$project$Main$model = {
+	words: {
+		ctor: '::',
+		_0: {text: 'Please', soundUrl: '', id: 0},
+		_1: {
+			ctor: '::',
+			_0: {text: 'Thanks', soundUrl: '', id: 1},
+			_1: {ctor: '[]'}
+		}
+	}
+};
+var _user$project$Main$Model = function (a) {
+	return {words: a};
+};
+var _user$project$Main$Word = F3(
+	function (a, b, c) {
+		return {text: a, soundUrl: b, id: c};
+	});
+var _user$project$Main$WordSoundUrl = F2(
+	function (a, b) {
+		return {ctor: 'WordSoundUrl', _0: a, _1: b};
+	});
+var _user$project$Main$WordText = F2(
+	function (a, b) {
+		return {ctor: 'WordText', _0: a, _1: b};
+	});
+var _user$project$Main$viewWord = function (word) {
+	return A2(
+		_elm_lang$html$Html$div,
+		{ctor: '[]'},
+		{
+			ctor: '::',
+			_0: A2(
+				_elm_lang$html$Html$input,
+				{
+					ctor: '::',
+					_0: _elm_lang$html$Html_Attributes$type_('text'),
+					_1: {
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$placeholder('text'),
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$html$Html_Events$onInput(
+								_user$project$Main$WordText(word.id)),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$html$Html_Attributes$value(word.text),
+								_1: {ctor: '[]'}
+							}
+						}
+					}
+				},
+				{ctor: '[]'}),
+			_1: {
+				ctor: '::',
+				_0: A2(
+					_elm_lang$html$Html$input,
+					{
+						ctor: '::',
+						_0: _elm_lang$html$Html_Attributes$type_('text'),
+						_1: {
+							ctor: '::',
+							_0: _elm_lang$html$Html_Attributes$placeholder('sound URL'),
+							_1: {
+								ctor: '::',
+								_0: _elm_lang$html$Html_Events$onInput(
+									_user$project$Main$WordSoundUrl(word.id)),
+								_1: {
+									ctor: '::',
+									_0: _elm_lang$html$Html_Attributes$value(word.soundUrl),
+									_1: {ctor: '[]'}
+								}
+							}
+						}
+					},
+					{ctor: '[]'}),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_elm_lang$html$Html$div,
+						{ctor: '[]'},
+						{
+							ctor: '::',
+							_0: _elm_lang$html$Html$text(
+								A2(
+									_elm_lang$core$Basics_ops['++'],
+									word.text,
+									A2(_elm_lang$core$Basics_ops['++'], ' | ', word.soundUrl))),
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				}
+			}
+		});
+};
+var _user$project$Main$view = function (model) {
+	return A2(
+		_elm_lang$html$Html$ul,
+		{ctor: '[]'},
+		A2(_elm_lang$core$List$map, _user$project$Main$viewWord, model.words));
+};
+var _user$project$Main$main = _elm_lang$html$Html$beginnerProgram(
+	{model: _user$project$Main$model, view: _user$project$Main$view, update: _user$project$Main$update})();
