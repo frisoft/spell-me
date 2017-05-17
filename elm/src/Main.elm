@@ -1,11 +1,11 @@
-import Html exposing (Html, ul, div, input, text)
+import Html exposing (Html, ul, div, input, text, button)
 import Html.Attributes exposing (type_, placeholder, value)
-import Html.Events exposing (onInput)
+import Html.Events exposing (onInput, onClick)
 -- import List exposing (..)
 
 main : Program Never Model Msg
 main =
-  Html.beginnerProgram { model = model, view = view, update = update }
+  programWithFlags { init = init, model = model, view = view, update = update }
 
 
 -- MODEL
@@ -13,6 +13,7 @@ main =
 type alias Model =
   { words: Words
   , newWord: Word
+  , mode: Mode
   }
 
 type alias Words =
@@ -23,6 +24,8 @@ type alias Word =
   , soundUrl: String
   , id: Int
   }
+
+type Mode = Show | Edit
 
 initialNewWord : Word
 initialNewWord =
@@ -36,8 +39,23 @@ model =
     , { text = "Thanks", soundUrl = "", id = 1 }
     ]
     , newWord = initialNewWord
+    , mode = Show
   }
 
+-- INIT
+type alias Flags =
+  {
+    words : List Word
+  }
+
+init : Flags -> (Model, Cmd Msg)
+init : flags =
+  (
+    {
+      words: flags.words
+    }
+    , Cmd.none
+  )
 
 -- UPDATE
 
@@ -45,6 +63,7 @@ type Msg
   = WordText Int String
   | WordSoundUrl Int String
   | NewWordText String
+  | EditMode
 
 update : Msg -> Model -> Model
 update msg model =
@@ -106,19 +125,40 @@ maxWordId words =
 
 view : Model -> Html Msg
 view model =
-  ul []
-    (List.append (List.map viewWord model.words) [viewNewWord model.newWord])
+  case model.mode of
+    Show ->
+      show model
+    Edit ->
+      edit model
 
-viewWord : Word -> Html Msg
-viewWord word =
+show : Model -> Html Msg
+show model =
+  div []
+  [ ul [] (List.map showWord model.words)
+  , button [ onClick EditMode ] [ text "Edit" ]
+  ]
+
+showWord : Word -> Html Msg
+showWord word =
+  div []
+    [ text word.text
+    ]
+
+edit : Model -> Html Msg
+edit model =
+  ul []
+    (List.append (List.map editWord model.words) [editNewWord model.newWord])
+
+editWord : Word -> Html Msg
+editWord word =
   div []
     [ input [ type_ "text", placeholder "text", onInput (WordText word.id), value word.text ] []
     , input [ type_ "text", placeholder "sound URL", onInput (WordSoundUrl word.id), value word.soundUrl ] []
     , div [] [text ((toString word.id) ++ " | " ++ word.text ++ " | " ++ word.soundUrl)]
     ]
 
-viewNewWord : Word -> Html Msg
-viewNewWord word =
+editNewWord : Word -> Html Msg
+editNewWord word =
   div []
     [ input [ type_ "text", placeholder "new word", onInput NewWordText, value word.text ] []
     ]
