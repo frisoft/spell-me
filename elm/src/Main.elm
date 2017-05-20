@@ -1,4 +1,4 @@
-module Main exposing (..)
+port module Main exposing (..)
 
 import Html exposing (Html, programWithFlags, ul, div, input, text, button)
 import Html.Attributes exposing (type_, placeholder, value)
@@ -82,6 +82,13 @@ init flags =
 
 
 
+-- PORTS
+
+
+port save : Words -> Cmd msg
+
+
+
 -- SUBSCRIPTION
 
 
@@ -122,7 +129,7 @@ update msg model =
             ( { model | words = model.prevWords, mode = Show }, Cmd.none )
 
         Save ->
-            ( { model | mode = Show }, Cmd.none )
+            ( { model | mode = Show }, save model.words )
 
 
 updateText : Int -> String -> Words -> Words

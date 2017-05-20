@@ -7,16 +7,51 @@
   <body>
     <div id="main"></div>
     <script src="js/main.min.js"></script>
+    <script src="js-lib/lz-string.min.js"></script>
     <script>
+      words_from_url = function() {
+        query = window.location.search.substring(1);
+        return decompress_words(query);
+      }
+
+      save = function(words) {
+        push_url(to_url(words));
+      }
+
+      to_str = function(json) {
+        return JSON.stringify(json);
+      }
+
+      compress_words = function(words) {
+        return LZString.compressToEncodedURIComponent(to_str(words));
+      }
+
+      to_json = function(str) {
+        return JSON.parse(str);
+      }
+
+      decompress_words = function(str) {
+        return to_json(LZString.decompressFromEncodedURIComponent(str));
+      }
+
+      to_url = function(words) {
+        return window.location.origin + window.location.pathname + '?' + compress_words(words);
+      }
+
+      push_url = function(url) {
+        history.pushState(null, null, url);
+      }
+
       var node = document.getElementById('main');
       var app = Elm.Main.embed(node,
         {
-          'words': [
-            { 'text': 'WORD', 'soundUrl': '', id: 0 },
-            { 'text': 'Second word', 'soundUrl': 'aaa', id: 1 }
-          ]
+          'words':  words_from_url()
         }
       );
+
+      app.ports.save.subscribe(function(words) {
+        save(words);
+      });
     </script>
   </body>
 </html>
