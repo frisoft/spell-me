@@ -11,7 +11,8 @@
     <script>
       words_from_url = function() {
         query = window.location.search.substring(1);
-        return decompress_words(query);
+        words = decompress_words(query);
+        return words || [];
       }
 
       save = function(words) {
@@ -45,7 +46,7 @@
       var node = document.getElementById('main');
       var app = Elm.Main.embed(node,
         {
-          'words':  words_from_url()
+          'words': words_from_url()
         }
       );
 

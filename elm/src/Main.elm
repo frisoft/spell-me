@@ -3,6 +3,8 @@ port module Main exposing (..)
 import Html exposing (Html, programWithFlags, ul, div, input, text, button)
 import Html.Attributes exposing (type_, placeholder, value)
 import Html.Events exposing (onInput, onClick)
+import Types exposing (..)
+import Ports
 
 
 -- import List exposing (..)
@@ -20,30 +22,6 @@ main =
 
 
 -- MODEL
-
-
-type alias Model =
-    { words : Words
-    , prevWords : Words
-    , newWord : Word
-    , mode : Mode
-    }
-
-
-type alias Words =
-    List Word
-
-
-type alias Word =
-    { text : String
-    , soundUrl : String
-    , id : Int
-    }
-
-
-type Mode
-    = Show
-    | Edit
 
 
 initialNewWord : Word
@@ -79,13 +57,6 @@ init flags =
             flags.words
     in
         ( Model words words initialNewWord Show, Cmd.none )
-
-
-
--- PORTS
-
-
-port save : Words -> Cmd msg
 
 
 
@@ -129,7 +100,7 @@ update msg model =
             ( { model | words = model.prevWords, mode = Show }, Cmd.none )
 
         Save ->
-            ( { model | mode = Show }, save model.words )
+            ( { model | mode = Show }, Ports.save model.words )
 
 
 updateText : Int -> String -> Words -> Words
