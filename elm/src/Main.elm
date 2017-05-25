@@ -1,7 +1,7 @@
 port module Main exposing (..)
 
-import Html exposing (Html, programWithFlags, ul, div, input, text, button)
-import Html.Attributes exposing (type_, placeholder, value)
+import Html exposing (Html, programWithFlags, ul, div, input, text, button, a, table, tr, td)
+import Html.Attributes exposing (type_, placeholder, value, href, target)
 import Html.Events exposing (onInput, onClick)
 import Types exposing (..)
 import Ports
@@ -173,22 +173,23 @@ view model =
 show : Model -> Html Msg
 show model =
     div []
-        [ ul [] (List.map showWord model.words)
+        [ table [] (List.map showWord model.words)
         , button [ onClick EditMode ] [ text "Edit" ]
         ]
 
 
 showWord : Word -> Html Msg
 showWord word =
-    div []
-        [ text word.text
+    tr []
+        [ td [] [ text word.text ]
+        , td [] [ dictionary_link word ]
         ]
 
 
 edit : Model -> Html Msg
 edit model =
     div []
-        [ ul []
+        [ table []
             (List.append (List.map editWord model.words) [ editNewWord model.newWord ])
         , button [ onClick Save ] [ text "Save" ]
         , button [ onClick Cancel ] [ text "Cancel" ]
@@ -197,10 +198,11 @@ edit model =
 
 editWord : Word -> Html Msg
 editWord word =
-    div []
-        [ input [ type_ "text", placeholder "text", onInput (WordText word.id), value word.text ] []
-        , input [ type_ "text", placeholder "sound URL", onInput (WordSoundUrl word.id), value word.soundUrl ] []
-        , div [] [ text ((toString word.id) ++ " | " ++ word.text ++ " | " ++ word.soundUrl) ]
+    tr []
+        [ td [] [ input [ type_ "text", placeholder "text", onInput (WordText word.id), value word.text ] [] ]
+        , td [] [ input [ type_ "text", placeholder "sound URL", onInput (WordSoundUrl word.id), value word.soundUrl ] [] ]
+        , td [] [ dictionary_link word ]
+        , td [] [ text ((toString word.id) ++ " | " ++ word.text ++ " | " ++ word.soundUrl) ]
         ]
 
 
@@ -209,3 +211,9 @@ editNewWord word =
     div []
         [ input [ type_ "text", placeholder "new word", onInput NewWordText, value word.text ] []
         ]
+
+
+dictionary_link : Word -> Html Msg
+dictionary_link word =
+    a [ href ("http://www.collinsdictionary.com/dictionary/english/" ++ word.text), target "_blank" ]
+        [ text "dictionary" ]
