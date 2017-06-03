@@ -1,12 +1,14 @@
 module Main exposing (..)
 
-import Html exposing (Html, programWithFlags, ul, div, input, text, button, a, table, tr, td)
-import Html.Attributes exposing (type_, placeholder, value, href, target)
+import Html exposing (Html, programWithFlags, ul, div, input, text, button, a, table, tr, td, h1)
+import Html.Attributes exposing (id, type_, placeholder, value, href, target)
 import Html.Events exposing (onInput, onClick)
 import Types exposing (..)
 import Ports
 import Msg exposing (..)
 import Audio exposing (playAudio)
+import Dom
+import Task
 
 
 -- import List exposing (..)
@@ -74,16 +76,19 @@ update msg model =
             ( { model | playingWordId = Nothing }, Cmd.none )
 
         NewWordText text ->
-            ( addNewWord model text, Cmd.none )
+            addNewWord model text
 
         EditMode ->
-            ( { model | mode = Edit }, Cmd.none )
+            ( { model | mode = Edit }, Task.attempt FocusResult (Dom.focus "new-word") )
 
         Cancel ->
             ( { model | words = model.prevWords, mode = Show }, Cmd.none )
 
         Save ->
             ( { model | mode = Show }, Ports.save model.words )
+
+        FocusResult result ->
+            ( model, Cmd.none )
 
 
 updateText : Int -> String -> Words -> Words
@@ -113,12 +118,18 @@ getWordById words id =
     words |> List.filter (\w -> w.id == id) |> List.head
 
 
-addNewWord : Model -> String -> Model
+addNewWord : Model -> String -> ( Model, Cmd Msg )
 addNewWord model text =
-    { model
-        | words = List.append model.words [ { initialNewWord | id = (maxWordId model.words) + 1, text = text } ]
-        , newWord = initialNewWord
-    }
+    let
+        newId =
+            (maxWordId model.words) + 1
+    in
+        ( { model
+            | words = List.append model.words [ { initialNewWord | id = newId, text = text } ]
+            , newWord = initialNewWord
+          }
+        , Task.attempt FocusResult (Dom.focus (wordDomId newId))
+        )
 
 
 deleteEmptyWords : Words -> Words
@@ -152,10 +163,23 @@ view : Model -> Html Msg
 view model =
     case model.mode of
         Show ->
-            show model
+            page (show model)
 
         Edit ->
-            edit model
+            page (edit model)
+
+
+page : Html Msg -> Html Msg
+page body =
+    div []
+        [ header
+        , body
+        ]
+
+
+header : Html Msg
+header =
+    h1 [] [ text "Spelling" ]
 
 
 show : Model -> Html Msg
@@ -198,7 +222,7 @@ edit model =
 editWord : DecoratedWord -> Html Msg
 editWord word =
     tr []
-        [ td [] [ input [ type_ "text", placeholder "text", onInput (WordText word.id), value word.text ] [] ]
+        [ td [] [ input [ id (wordDomId word.id), type_ "text", placeholder "text", onInput (WordText word.id), value word.text ] [] ]
         , td [] [ input [ type_ "text", placeholder "sound URL", onInput (WordSoundUrl word.id), value word.soundUrl ] [] ]
         , td [] [ dictionaryLink word ]
         , td [] [ playButton word ]
@@ -206,10 +230,15 @@ editWord word =
         ]
 
 
+wordDomId : Int -> String
+wordDomId id =
+    "word" ++ toString id
+
+
 editNewWord : Word -> Html Msg
 editNewWord word =
     div []
-        [ input [ type_ "text", placeholder "new word", onInput NewWordText, value word.text ] []
+        [ input [ id "new-word", type_ "text", placeholder "new word", onInput NewWordText, value word.text ] []
         ]
 
 

@@ -1,5 +1,7 @@
 module Msg exposing (..)
 
+import Dom
+
 
 type Msg
     = WordText Int String
@@ -10,3 +12,4 @@ type Msg
     | EditMode
     | Cancel
     | Save
+    | FocusResult (Result Dom.Error ())
