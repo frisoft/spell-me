@@ -12,6 +12,14 @@ type alias Word =
     }
 
 
+type alias DecoratedWord =
+    { text : String
+    , soundUrl : String
+    , id : Int
+    , playing : Bool
+    }
+
+
 type Mode
     = Show
     | Edit
@@ -22,4 +30,5 @@ type alias Model =
     , prevWords : Words
     , newWord : Word
     , mode : Mode
+    , playingWordId : Maybe Int
     }

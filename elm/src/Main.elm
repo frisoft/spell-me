@@ -1,10 +1,12 @@
-port module Main exposing (..)
+module Main exposing (..)
 
 import Html exposing (Html, programWithFlags, ul, div, input, text, button, a, table, tr, td)
 import Html.Attributes exposing (type_, placeholder, value, href, target)
 import Html.Events exposing (onInput, onClick)
 import Types exposing (..)
 import Ports
+import Msg exposing (..)
+import Audio exposing (playAudio)
 
 
 -- import List exposing (..)
@@ -29,22 +31,6 @@ initialNewWord =
     { text = "", soundUrl = "", id = -1 }
 
 
-model : Model
-model =
-    { words =
-        [ { text = "Please", soundUrl = "", id = 0 }
-        , { text = "Thanks", soundUrl = "", id = 1 }
-        ]
-    , prevWords = []
-    , newWord = initialNewWord
-    , mode = Show
-    }
-
-
-
--- INIT
-
-
 type alias Flags =
     { words : Words
     }
@@ -56,7 +42,7 @@ init flags =
         words =
             flags.words
     in
-        ( Model words words initialNewWord Show, Cmd.none )
+        ( Model words words initialNewWord Show Nothing, Cmd.none )
 
 
 
@@ -72,15 +58,6 @@ subscriptions model =
 -- UPDATE
 
 
-type Msg
-    = WordText Int String
-    | WordSoundUrl Int String
-    | NewWordText String
-    | EditMode
-    | Cancel
-    | Save
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -89,6 +66,12 @@ update msg model =
 
         WordSoundUrl id soundUrl ->
             ( { model | words = (updateSoundUrl id soundUrl model.words) |> deleteEmptyWords }, Cmd.none )
+
+        Play id ->
+            ( { model | playingWordId = Just id }, Cmd.none )
+
+        PlayEnded ->
+            ( { model | playingWordId = Nothing }, Cmd.none )
 
         NewWordText text ->
             ( addNewWord model text, Cmd.none )
@@ -123,6 +106,11 @@ updateWord func id words =
                 w
     in
         List.map f words
+
+
+getWordById : Words -> Int -> Maybe Word
+getWordById words id =
+    words |> List.filter (\w -> w.id == id) |> List.head
 
 
 addNewWord : Model -> String -> Model
@@ -173,16 +161,26 @@ view model =
 show : Model -> Html Msg
 show model =
     div []
-        [ table [] (List.map showWord model.words)
+        [ table [] (List.map (\w -> (decoratedWord model w) |> showWord) model.words)
         , button [ onClick EditMode ] [ text "Edit" ]
         ]
 
 
-showWord : Word -> Html Msg
+decoratedWord : Model -> Word -> DecoratedWord
+decoratedWord model word =
+    { text = word.text
+    , soundUrl = word.soundUrl
+    , id = word.id
+    , playing = ((Just word.id) == model.playingWordId)
+    }
+
+
+showWord : DecoratedWord -> Html Msg
 showWord word =
     tr []
         [ td [] [ text word.text ]
-        , td [] [ dictionary_link word ]
+        , td [] [ dictionaryLink word ]
+        , td [] [ playButton word ]
         ]
 
 
@@ -190,18 +188,19 @@ edit : Model -> Html Msg
 edit model =
     div []
         [ table []
-            (List.append (List.map editWord model.words) [ editNewWord model.newWord ])
+            (List.append (List.map (\w -> (decoratedWord model w) |> editWord) model.words) [ editNewWord model.newWord ])
         , button [ onClick Save ] [ text "Save" ]
         , button [ onClick Cancel ] [ text "Cancel" ]
         ]
 
 
-editWord : Word -> Html Msg
+editWord : DecoratedWord -> Html Msg
 editWord word =
     tr []
         [ td [] [ input [ type_ "text", placeholder "text", onInput (WordText word.id), value word.text ] [] ]
         , td [] [ input [ type_ "text", placeholder "sound URL", onInput (WordSoundUrl word.id), value word.soundUrl ] [] ]
-        , td [] [ dictionary_link word ]
+        , td [] [ dictionaryLink word ]
+        , td [] [ playButton word ]
         , td [] [ text ((toString word.id) ++ " | " ++ word.text ++ " | " ++ word.soundUrl) ]
         ]
 
@@ -213,7 +212,18 @@ editNewWord word =
         ]
 
 
-dictionary_link : Word -> Html Msg
-dictionary_link word =
+dictionaryLink : DecoratedWord -> Html Msg
+dictionaryLink word =
     a [ href ("http://www.collinsdictionary.com/dictionary/english/" ++ word.text), target "_blank" ]
         [ text "dictionary" ]
+
+
+playButton : DecoratedWord -> Html Msg
+playButton word =
+    if word.playing then
+        div []
+            [ text "playing"
+            , playAudio word.soundUrl PlayEnded
+            ]
+    else
+        a [ href "#", onClick (Play word.id) ] [ text "play" ]
