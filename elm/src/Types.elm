@@ -17,6 +17,7 @@ type alias DecoratedWord =
     , soundUrl : String
     , id : Int
     , playing : Bool
+    , canPlay : Bool
     }
 
 

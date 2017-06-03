@@ -172,6 +172,7 @@ decoratedWord model word =
     , soundUrl = word.soundUrl
     , id = word.id
     , playing = ((Just word.id) == model.playingWordId)
+    , canPlay = model.playingWordId == Nothing
     }
 
 
@@ -225,5 +226,7 @@ playButton word =
             [ text "playing"
             , playAudio word.soundUrl PlayEnded
             ]
-    else
+    else if word.canPlay then
         a [ href "#", onClick (Play word.id) ] [ text "play" ]
+    else
+        text "play"
