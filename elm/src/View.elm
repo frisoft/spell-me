@@ -1,12 +1,14 @@
 module View exposing (view)
 
-import Html exposing (Html, ul, div, input, text, button, a, table, tr, td, h1)
+import Html exposing (Html, ul, div, input, text, a, table, tr, td, h1)
 import Html.Attributes exposing (id, type_, placeholder, value, href, target)
 import Html.Events exposing (onInput, onClick)
 import Types exposing (..)
 import Msg exposing (..)
 import Audio exposing (playAudio)
 import Utils exposing (..)
+import Bootstrap.Button as Button
+import Bootstrap.Form.Input as Input
 
 
 view : Model -> Html Msg
@@ -36,7 +38,7 @@ show : Model -> Html Msg
 show model =
     div []
         [ table [] (List.map (\w -> (decoratedWord model w) |> showWord) model.words)
-        , button [ onClick EditMode ] [ text "Edit" ]
+        , Button.button [ Button.primary, Button.attrs [ onClick EditMode ] ] [ text "Edit" ]
         ]
 
 
@@ -64,16 +66,16 @@ edit model =
     div []
         [ table []
             (List.append (List.map (\w -> (decoratedWord model w) |> editWord) model.words) [ editNewWord model.newWord ])
-        , button [ onClick Save ] [ text "Save" ]
-        , button [ onClick Cancel ] [ text "Cancel" ]
+        , Button.button [ Button.primary, Button.attrs [ onClick Save ] ] [ text "Save" ]
+        , Button.button [ Button.secondary, Button.attrs [ onClick Cancel ] ] [ text "Cancel" ]
         ]
 
 
 editWord : DecoratedWord -> Html Msg
 editWord word =
     tr []
-        [ td [] [ input [ id (wordDomId word.id), type_ "text", placeholder "text", onInput (WordText word.id), value word.text ] [] ]
-        , td [] [ input [ type_ "text", placeholder "sound URL", onInput (WordSoundUrl word.id), value word.soundUrl ] [] ]
+        [ td [] [ Input.text [ Input.id (wordDomId word.id), Input.placeholder "text", Input.onInput (WordText word.id), Input.defaultValue word.text ] ]
+        , td [] [ Input.text [ Input.placeholder "sound URL", Input.onInput (WordSoundUrl word.id), Input.defaultValue word.soundUrl ] ]
         , td [] [ dictionaryLink word ]
         , td [] [ playButton word ]
         , td [] [ text ((toString word.id) ++ " | " ++ word.text ++ " | " ++ word.soundUrl) ]
@@ -83,7 +85,7 @@ editWord word =
 editNewWord : Word -> Html Msg
 editNewWord word =
     div []
-        [ input [ id "new-word", type_ "text", placeholder "new word", onInput NewWordText, value word.text ] []
+        [ Input.text [ Input.id "new-word", Input.placeholder "new word", Input.onInput NewWordText, Input.defaultValue word.text ]
         ]
 
 
