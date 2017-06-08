@@ -7,6 +7,8 @@ import Types exposing (..)
 import Msg exposing (..)
 import Audio exposing (playAudio)
 import Utils exposing (..)
+import Bootstrap.Grid as Grid
+import Bootstrap.Grid.Col as Col
 import Bootstrap.Button as Button
 import Bootstrap.Form.Input as Input
 
@@ -23,9 +25,15 @@ view model =
 
 page : Html Msg -> Html Msg
 page body =
-    div []
-        [ header
-        , body
+    Grid.container []
+        [ Grid.simpleRow
+            [ Grid.col [ Col.xs12 ]
+                [ header ]
+            ]
+        , Grid.simpleRow
+            [ Grid.col [ Col.xs12 ]
+                [ body ]
+            ]
         ]
 
 
@@ -66,6 +74,7 @@ edit model =
     div []
         [ table []
             (List.append (List.map (\w -> (decoratedWord model w) |> editWord) model.words) [ editNewWord model.newWord ])
+        , div [] [ addNewWord ]
         , Button.button [ Button.primary, Button.attrs [ onClick Save ] ] [ text "Save" ]
         , Button.button [ Button.secondary, Button.attrs [ onClick Cancel ] ] [ text "Cancel" ]
         ]
@@ -76,9 +85,10 @@ editWord word =
     tr []
         [ td [] [ Input.text [ Input.id (wordDomId word.id), Input.placeholder "text", Input.onInput (WordText word.id), Input.defaultValue word.text ] ]
         , td [] [ Input.text [ Input.placeholder "sound URL", Input.onInput (WordSoundUrl word.id), Input.defaultValue word.soundUrl ] ]
+        , td [] [ a [ href "#", onClick (DeleteWord word.id) ] [ text "delete" ] ]
         , td [] [ dictionaryLink word ]
+        , td [] [ text "|" ]
         , td [] [ playButton word ]
-        , td [] [ text ((toString word.id) ++ " | " ++ word.text ++ " | " ++ word.soundUrl) ]
         ]
 
 
@@ -87,6 +97,11 @@ editNewWord word =
     div []
         [ Input.text [ Input.id "new-word", Input.placeholder "new word", Input.onInput NewWordText, Input.defaultValue word.text ]
         ]
+
+
+addNewWord : Html Msg
+addNewWord =
+    a [ href "#", onClick AddWord ] [ text "add word" ]
 
 
 dictionaryLink : DecoratedWord -> Html Msg
@@ -99,7 +114,7 @@ playButton word =
     if word.playing then
         div []
             [ text "playing"
-            , playAudio word.soundUrl PlayEnded
+            , playAudio word.soundUrl AudioPlayEnded AudioError
             ]
     else if word.canPlay then
         a [ href "#", onClick (Play word.id) ] [ text "play" ]

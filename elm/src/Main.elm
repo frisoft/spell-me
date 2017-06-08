@@ -71,11 +71,20 @@ update msg model =
         Play id ->
             ( { model | playingWordId = Just id }, Cmd.none )
 
-        PlayEnded ->
+        AudioPlayEnded ->
+            ( { model | playingWordId = Nothing }, Cmd.none )
+
+        AudioError ->
             ( { model | playingWordId = Nothing }, Cmd.none )
 
         NewWordText text ->
             addNewWord model text
+
+        AddWord ->
+            addNewWord model ""
+
+        DeleteWord id ->
+            ( { model | words = (deleteWord model.words id) }, Cmd.none )
 
         EditMode ->
             ( { model | mode = Edit }, Task.attempt FocusResult (Dom.focus "new-word") )
@@ -84,7 +93,7 @@ update msg model =
             ( { model | words = model.prevWords, mode = Show }, Cmd.none )
 
         Save ->
-            ( { model | mode = Show }, Ports.save model.words )
+            ( { model | words = model.words |> deleteEmptyWords, mode = Show }, Ports.save model.words )
 
         FocusResult result ->
             ( model, Cmd.none )
@@ -136,6 +145,11 @@ deleteEmptyWords words =
     words
         |> List.filter (\w -> w.text /= "" || w.soundUrl /= "")
         |> sortWords
+
+
+deleteWord : Words -> Int -> Words
+deleteWord words id =
+    words |> List.filter (\w -> w.id /= id) |> sortWords
 
 
 sortWords : Words -> Words

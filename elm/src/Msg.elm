@@ -7,8 +7,11 @@ type Msg
     = WordText Int String
     | WordSoundUrl Int String
     | Play Int
-    | PlayEnded
+    | AudioPlayEnded
+    | AudioError
     | NewWordText String
+    | AddWord
+    | DeleteWord Int
     | EditMode
     | Cancel
     | Save
