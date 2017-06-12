@@ -1,6 +1,6 @@
 module Audio exposing (playAudio)
 
-import Html exposing (Attribute, Html, audio)
+import Html exposing (Attribute, Html, audio, span, text)
 import Html.Attributes exposing (src, autoplay)
 import Html.Events exposing (on)
 import Json.Decode as Json
@@ -16,6 +16,12 @@ onEnded message =
     on "ended" (Json.succeed message)
 
 
-playAudio : String -> msg -> msg -> Html msg
-playAudio soundUrl msgEnded msgError =
-    audio [ src soundUrl, autoplay True, onEnded msgEnded, onError msgError ] []
+playAudio : String -> Bool -> msg -> msg -> Html msg
+playAudio soundUrl autoPlay msgEnded msgError =
+    span []
+        [ audio [ src soundUrl ] []
+        , if autoPlay then
+            audio [ src soundUrl, autoplay True, onEnded msgEnded, onError msgError ] []
+          else
+            text ""
+        ]

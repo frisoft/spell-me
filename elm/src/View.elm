@@ -1,7 +1,7 @@
 module View exposing (view)
 
 import Html exposing (Html, ul, div, input, text, a, table, tr, td, h1)
-import Html.Attributes exposing (id, type_, placeholder, value, href, target)
+import Html.Attributes exposing (id, type_, placeholder, value, href, target, class)
 import Html.Events exposing (onInput, onClick)
 import Types exposing (..)
 import Msg exposing (..)
@@ -11,6 +11,7 @@ import Bootstrap.Grid as Grid
 import Bootstrap.Grid.Col as Col
 import Bootstrap.Button as Button
 import Bootstrap.Form.Input as Input
+import Bootstrap.Table as Table
 
 
 view : Model -> Html Msg
@@ -64,7 +65,7 @@ showWord : DecoratedWord -> Html Msg
 showWord word =
     tr []
         [ td [] [ text word.text ]
-        , td [] [ dictionaryLink word ]
+        , td [] [ dictionaryButton word ]
         , td [] [ playButton word ]
         ]
 
@@ -72,51 +73,47 @@ showWord word =
 edit : Model -> Html Msg
 edit model =
     div []
-        [ table []
-            (List.append (List.map (\w -> (decoratedWord model w) |> editWord) model.words) [ editNewWord model.newWord ])
-        , div [] [ addNewWord ]
+        [ Table.table
+            { options = [ Table.striped, Table.attr (class "table-words") ]
+            , thead = Table.thead [] []
+            , tbody = Table.tbody [] (List.map (\w -> (decoratedWord model w) |> editWord) model.words)
+            }
+        , div [ class "add-new-word-container" ] [ addNewWord ]
         , Button.button [ Button.primary, Button.attrs [ onClick Save ] ] [ text "Save" ]
+        , text " "
         , Button.button [ Button.secondary, Button.attrs [ onClick Cancel ] ] [ text "Cancel" ]
         ]
 
 
-editWord : DecoratedWord -> Html Msg
+editWord : DecoratedWord -> Table.Row Msg
 editWord word =
-    tr []
-        [ td [] [ Input.text [ Input.id (wordDomId word.id), Input.placeholder "text", Input.onInput (WordText word.id), Input.defaultValue word.text ] ]
-        , td [] [ Input.text [ Input.placeholder "sound URL", Input.onInput (WordSoundUrl word.id), Input.defaultValue word.soundUrl ] ]
-        , td [] [ a [ href "#", onClick (DeleteWord word.id) ] [ text "delete" ] ]
-        , td [] [ dictionaryLink word ]
-        , td [] [ text "|" ]
-        , td [] [ playButton word ]
-        ]
-
-
-editNewWord : Word -> Html Msg
-editNewWord word =
-    div []
-        [ Input.text [ Input.id "new-word", Input.placeholder "new word", Input.onInput NewWordText, Input.defaultValue word.text ]
+    Table.tr []
+        [ Table.td [] [ Input.text [ Input.id (wordDomId word.id), Input.placeholder "text", Input.onInput (WordText word.id), Input.defaultValue word.text ] ]
+        , Table.td [] [ Input.text [ Input.placeholder "sound URL", Input.onInput (WordSoundUrl word.id), Input.defaultValue word.soundUrl ] ]
+        , Table.td [] [ Button.button [ Button.danger, Button.attrs [ onClick (DeleteWord word.id) ] ] [ text "-" ] ]
+        , Table.td [] [ dictionaryButton word ]
+        , Table.td [] [ playButton word ]
         ]
 
 
 addNewWord : Html Msg
 addNewWord =
-    a [ href "#", onClick AddWord ] [ text "add word" ]
+    Button.button [ Button.success, Button.attrs [ onClick AddWord ] ] [ text "+" ]
 
 
-dictionaryLink : DecoratedWord -> Html Msg
-dictionaryLink word =
-    a [ href ("http://www.collinsdictionary.com/dictionary/english/" ++ word.text), target "_blank" ] [ text "dictionary" ]
+dictionaryButton : DecoratedWord -> Html Msg
+dictionaryButton word =
+    a [ class "btn", href ("http://www.collinsdictionary.com/dictionary/english/" ++ word.text), target "_blank" ] [ text "dictionary" ]
 
 
 playButton : DecoratedWord -> Html Msg
 playButton word =
-    if word.playing then
-        div []
-            [ text "playing"
-            , playAudio word.soundUrl AudioPlayEnded AudioError
-            ]
-    else if word.canPlay then
-        a [ href "#", onClick (Play word.id) ] [ text "play" ]
-    else
-        text "play"
+    div []
+        [ playAudio word.soundUrl word.playing AudioPlayEnded AudioError
+        , if word.playing then
+            Button.button [ Button.secondary, Button.disabled True ] [ text "playing" ]
+          else if word.canPlay then
+            Button.button [ Button.secondary, Button.attrs [ onClick (Play word.id) ] ] [ text "play" ]
+          else
+            Button.button [ Button.secondary, Button.disabled True ] [ text "play" ]
+        ]

@@ -27,11 +27,6 @@ main =
 -- MODEL
 
 
-initialNewWord : Word
-initialNewWord =
-    { text = "", soundUrl = "", id = -1 }
-
-
 type alias Flags =
     { words : Words
     }
@@ -43,7 +38,7 @@ init flags =
         words =
             flags.words
     in
-        ( Model words words initialNewWord Show Nothing, Cmd.none )
+        ( Model words words Show Nothing, Cmd.none )
 
 
 
@@ -77,11 +72,8 @@ update msg model =
         AudioError ->
             ( { model | playingWordId = Nothing }, Cmd.none )
 
-        NewWordText text ->
-            addNewWord model text
-
         AddWord ->
-            addNewWord model ""
+            addNewWord model
 
         DeleteWord id ->
             ( { model | words = (deleteWord model.words id) }, Cmd.none )
@@ -126,16 +118,13 @@ getWordById words id =
     words |> List.filter (\w -> w.id == id) |> List.head
 
 
-addNewWord : Model -> String -> ( Model, Cmd Msg )
-addNewWord model text =
+addNewWord : Model -> ( Model, Cmd Msg )
+addNewWord model =
     let
         newId =
             (maxWordId model.words) + 1
     in
-        ( { model
-            | words = List.append model.words [ { initialNewWord | id = newId, text = text } ]
-            , newWord = initialNewWord
-          }
+        ( { model | words = List.append model.words [ { text = "", soundUrl = "", id = newId } ] }
         , Task.attempt FocusResult (Dom.focus (wordDomId newId))
         )
 

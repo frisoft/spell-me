@@ -29,7 +29,6 @@ type Mode
 type alias Model =
     { words : Words
     , prevWords : Words
-    , newWord : Word
     , mode : Mode
     , playingWordId : Maybe Int
     }

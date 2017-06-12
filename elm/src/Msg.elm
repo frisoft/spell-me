@@ -9,7 +9,6 @@ type Msg
     | Play Int
     | AudioPlayEnded
     | AudioError
-    | NewWordText String
     | AddWord
     | DeleteWord Int
     | EditMode
