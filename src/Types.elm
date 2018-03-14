@@ -1,5 +1,7 @@
 module Types exposing (..)
 
+import Time exposing (Time)
+
 
 type alias Words =
     List Word
@@ -18,11 +20,20 @@ type alias DecoratedWord =
     , id : Int
     , playing : Bool
     , canPlay : Bool
+    , mode : Mode
+    }
+
+
+type alias PlayAll =
+    { playingId : Int
+    , startTime : Time
+    , time : Time
     }
 
 
 type Mode
     = Show
+    | Hide
     | Edit
 
 
@@ -31,4 +42,5 @@ type alias Model =
     , prevWords : Words
     , mode : Mode
     , playingWordId : Maybe Int
+    , playAll : PlayAll
     }

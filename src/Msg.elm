@@ -1,6 +1,8 @@
 module Msg exposing (..)
 
 import Dom
+import Time exposing (Time)
+import Types exposing (Words)
 
 
 type Msg
@@ -12,6 +14,15 @@ type Msg
     | AddWord
     | DeleteWord Int
     | EditMode
+    | HideMode
+    | ShowMode
     | Cancel
     | Save
     | FocusResult (Result Dom.Error ())
+    | Shuffle
+    | ShuffledList Words
+    | PlayAllWords
+
+
+
+-- | Tick Time

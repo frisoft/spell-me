@@ -1,13 +1,16 @@
 module Main exposing (..)
 
-import Html exposing (programWithFlags)
-import Types exposing (..)
-import Ports
-import Msg exposing (..)
 import Dom
+import Html exposing (programWithFlags)
+import Msg exposing (..)
+import Ports
+import Random
+import Random.List exposing (shuffle)
 import Task
-import View exposing (view)
+import Time exposing (Time, millisecond)
+import Types exposing (..)
 import Utils exposing (..)
+import View exposing (view)
 
 
 -- import List exposing (..)
@@ -38,7 +41,7 @@ init flags =
         words =
             flags.words
     in
-        ( Model words words Show Nothing, Cmd.none )
+    ( Model words words Show Nothing (PlayAll 0 0 0), Cmd.none )
 
 
 
@@ -47,6 +50,7 @@ init flags =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
+    -- Time.every (100 * millisecond) Tick
     Sub.none
 
 
@@ -58,10 +62,10 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         WordText id text ->
-            ( { model | words = (updateText id text model.words) |> deleteEmptyWords }, Cmd.none )
+            ( { model | words = updateText id text model.words }, Cmd.none )
 
         WordSoundUrl id soundUrl ->
-            ( { model | words = (updateSoundUrl id soundUrl model.words) |> deleteEmptyWords }, Cmd.none )
+            ( { model | words = updateSoundUrl id soundUrl model.words }, Cmd.none )
 
         Play id ->
             ( { model | playingWordId = Just id }, Cmd.none )
@@ -76,10 +80,16 @@ update msg model =
             addNewWord model
 
         DeleteWord id ->
-            ( { model | words = (deleteWord model.words id) }, Cmd.none )
+            ( { model | words = deleteWord model.words id }, Cmd.none )
 
         EditMode ->
             ( { model | mode = Edit }, Task.attempt FocusResult (Dom.focus "new-word") )
+
+        HideMode ->
+            ( { model | mode = Hide }, Cmd.none )
+
+        ShowMode ->
+            ( { model | mode = Show }, Cmd.none )
 
         Cancel ->
             ( { model | words = model.prevWords, mode = Show }, Cmd.none )
@@ -89,6 +99,30 @@ update msg model =
 
         FocusResult result ->
             ( model, Cmd.none )
+
+        Shuffle ->
+            ( model, Random.generate ShuffledList (shuffle model.words) )
+
+        ShuffledList shuffledList ->
+            ( { model | words = shuffledList, mode = Hide }, Cmd.none )
+
+        PlayAllWords ->
+            doNothing model
+
+
+
+-- Tick newTime ->
+--     ( { model | playAll = playAllNewTime model.playAll newTime }, Cmd.none )
+
+
+playAllNewTime : PlayAll -> Time -> PlayAll
+playAllNewTime playAll newTime =
+    { playAll | time = newTime }
+
+
+doNothing : Model -> ( Model, Cmd Msg )
+doNothing model =
+    ( model, Cmd.none )
 
 
 updateText : Int -> String -> Words -> Words
@@ -110,7 +144,7 @@ updateWord func id words =
             else
                 w
     in
-        List.map f words
+    List.map f words
 
 
 getWordById : Words -> Int -> Maybe Word
@@ -122,11 +156,11 @@ addNewWord : Model -> ( Model, Cmd Msg )
 addNewWord model =
     let
         newId =
-            (maxWordId model.words) + 1
+            maxWordId model.words + 1
     in
-        ( { model | words = List.append model.words [ { text = "", soundUrl = "", id = newId } ] }
-        , Task.attempt FocusResult (Dom.focus (wordDomId newId))
-        )
+    ( { model | words = List.append model.words [ { text = "", soundUrl = "", id = newId } ] }
+    , Task.attempt FocusResult (Dom.focus (wordDomId newId))
+    )
 
 
 deleteEmptyWords : Words -> Words

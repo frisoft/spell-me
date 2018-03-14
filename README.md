@@ -1,3 +1,3 @@
 # Spell me
 
-Spell practising
+Spelling practising
