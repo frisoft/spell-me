@@ -38,10 +38,9 @@ type alias Flags =
 init : Flags -> ( Model, Cmd Msg )
 init flags =
     let
-        words =
-            flags.words
+      words = wordsOrDefault flags.words
     in
-    ( Model words words Show Nothing (PlayAll 0 0 0), Cmd.none )
+      ( Model words words Show Nothing (PlayAll 0 0 0), Cmd.none )
 
 
 
@@ -189,3 +188,10 @@ maxWordId words =
 
         Just value ->
             value
+
+wordsOrDefault : Words -> Words
+wordsOrDefault words =
+    if List.isEmpty(words) then
+        [ ( Word "word" "" 1 ) ]
+    else
+        words

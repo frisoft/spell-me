@@ -12,7 +12,7 @@ import Html.Events exposing (onClick, onInput)
 import Msg exposing (..)
 import Types exposing (..)
 import Utils exposing (..)
-
+import String exposing (left)
 
 view : Model -> Html Msg
 view model =
@@ -163,4 +163,15 @@ soundUrlOrDefault word =
     if word.soundUrl /= "" then
         "https://www.collinsdictionary.com" ++ word.soundUrl
     else
-        "https://ssl.gstatic.com/dictionary/static/sounds/de/0/" ++ word.text ++ ".mp3"
+        defaultSoundUrl word.text
+
+defaultSoundUrl : String -> String
+defaultSoundUrl text =
+  let
+    w = text ++ "__gb"
+  in
+    "https://www.oxfordlearnersdictionaries.com/media/english/uk_pron_ogg/" ++
+      (left 1 text) ++ "/" ++
+      (left 3 w) ++ "/" ++
+      (left 5 w) ++ "/" ++
+      w ++ "_1.ogg"
